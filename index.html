@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#102a43">
+  <title>Controle Meteorológico</title>
+  <style>
+    :root {
+      --navy: #102a43;
+      --blue: #176b87;
+      --cyan: #dff4f5;
+      --ink: #243b53;
+      --muted: #627d98;
+      --line: #d9e2ec;
+      --surface: #ffffff;
+      --bg: #f2f7fa;
+      --success: #16794b;
+      --danger: #b42318;
+      --shadow: 0 18px 48px rgba(16, 42, 67, .10);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; min-height: 100vh; padding: 32px 16px;
+      display: grid; place-items: center;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 10% 10%, rgba(90, 190, 200, .18), transparent 30%),
+        linear-gradient(145deg, #eef6f8, #f7f9fc 58%, #e8f1f5);
+    }
+    .shell { width: min(100%, 560px); }
+    .brand { display: flex; align-items: center; gap: 12px; margin: 0 0 18px 4px; }
+    .brand-mark {
+      width: 42px; height: 42px; border-radius: 13px; display: grid; place-items: center;
+      color: white; background: linear-gradient(145deg, var(--blue), var(--navy));
+      box-shadow: 0 8px 18px rgba(23,107,135,.22);
+    }
+    .brand-mark svg { width: 23px; height: 23px; }
+    .brand-name { color: var(--navy); font-size: 13px; font-weight: 750; letter-spacing: .11em; text-transform: uppercase; }
+    .brand-sub { color: var(--muted); font-size: 12px; margin-top: 2px; }
+    .card {
+      overflow: hidden; border: 1px solid rgba(217,226,236,.9); border-radius: 22px;
+      background: var(--surface); box-shadow: var(--shadow);
+    }
+    .hero { padding: 30px 32px 25px; color: white; background: linear-gradient(120deg, #102a43, #176b87); }
+    .eyebrow { margin: 0 0 9px; color: #b8e7eb; font-size: 11px; font-weight: 750; letter-spacing: .13em; text-transform: uppercase; }
+    h1 { margin: 0; font-size: clamp(25px, 5vw, 32px); line-height: 1.15; letter-spacing: -.035em; }
+    .hero p { max-width: 420px; margin: 10px 0 0; color: #e1f1f4; font-size: 14px; line-height: 1.6; }
+    form { padding: 28px 32px 30px; }
+    .field { margin-bottom: 21px; }
+    label { display: block; margin-bottom: 8px; color: var(--navy); font-size: 13px; font-weight: 700; }
+    .required { color: var(--blue); }
+    input {
+      width: 100%; min-height: 49px; padding: 0 14px; border: 1px solid var(--line);
+      border-radius: 11px; outline: none; background: #fbfdff; color: var(--ink);
+      font: inherit; font-size: 15px; transition: border .2s, box-shadow .2s, background .2s;
+    }
+    input::placeholder { color: #9fb3c8; }
+    input:focus { border-color: var(--blue); background: white; box-shadow: 0 0 0 4px rgba(23,107,135,.12); }
+    .hint { margin: 7px 0 0; color: var(--muted); font-size: 12px; line-height: 1.5; }
+    .location-button {
+      width: 100%; display: flex; align-items: center; justify-content: center; gap: 9px;
+      min-height: 46px; margin: 2px 0 23px; border: 1px solid #b9dce2; border-radius: 11px;
+      color: var(--blue); background: var(--cyan); font: inherit; font-size: 13px; font-weight: 750;
+      cursor: pointer; transition: transform .15s, background .15s;
+    }
+    .location-button:hover { background: #ccebed; }
+    .location-button:active { transform: scale(.99); }
+    .location-button:disabled { opacity: .65; cursor: wait; }
+    .location-button svg { width: 17px; height: 17px; }
+    .submit {
+      width: 100%; min-height: 51px; border: 0; border-radius: 11px; color: white;
+      background: linear-gradient(110deg, var(--blue), var(--navy)); font: inherit;
+      font-size: 15px; font-weight: 750; cursor: pointer; box-shadow: 0 8px 18px rgba(16,42,67,.17);
+      transition: filter .2s, transform .15s;
+    }
+    .submit:hover { filter: brightness(1.1); }
+    .submit:active { transform: translateY(1px); }
+    .status { display: none; margin-top: 16px; padding: 12px 14px; border-radius: 10px; font-size: 13px; line-height: 1.5; }
+    .status.show { display: block; }
+    .status.success { color: var(--success); background: #eaf7f0; border: 1px solid #b7e4ca; }
+    .status.error { color: var(--danger); background: #fff1f0; border: 1px solid #ffd1cc; }
+    .footer { padding: 0 32px 25px; color: var(--muted); text-align: center; font-size: 11px; }
+    .footer a { color: var(--blue); text-decoration: none; }
+    @media (max-width: 480px) {
+      body { padding: 18px 12px; }
+      .hero { padding: 25px 22px 22px; }
+      form { padding: 24px 22px 25px; }
+      .footer { padding: 0 22px 22px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <div class="brand">
+      <div class="brand-mark" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 3v2m0 14v2M3 12h2m14 0h2M5.64 5.64l1.42 1.42m9.88 9.88 1.42 1.42m0-12.72-1.42 1.42m-9.88 9.88-1.42 1.42"/>
+          <circle cx="12" cy="12" r="4"/>
+          <path d="M16 17.5c1.8-.1 3-1.2 3-2.7a2.7 2.7 0 0 0-2.7-2.7 3.4 3.4 0 0 0-6.5-.8"/>
+        </svg>
+      </div>
+      <div>
+        <div class="brand-name">Monitoramento</div>
+        <div class="brand-sub">Registro de informações meteorológicas</div>
+      </div>
+    </div>
+
+    <section class="card">
+      <header class="hero">
+        <p class="eyebrow">Formulário de registro</p>
+        <h1>Controle Meteorológico</h1>
+        <p>Informe o local da observação e suas coordenadas geográficas para registrar os dados.</p>
+      </header>
+
+      <form id="weatherForm"
+        action="https://docs.google.com/forms/d/e/1FAIpQLSdt7w89OobUgo_9Tx-_S_cWR-rsP0FzHjjfINAvbfoXSGfmkg/formResponse"
+        method="POST" target="googleFormTarget">
+        <div class="field">
+          <label for="local">Nome do local <span class="required">*</span></label>
+          <input id="local" name="entry.1378277513" type="text" placeholder="Ex.: Parque, bairro ou cidade" required maxlength="200">
+        </div>
+
+        <button class="location-button" type="button" id="getLocation">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M20 10c0 5-8 12-8 12S4 15 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/>
+          </svg>
+          Preencher coordenadas pela minha localização
+        </button>
+
+        <div class="field">
+          <label for="longitude">Longitude <span class="required">*</span></label>
+          <input id="longitude" name="entry.1632901958" type="number" step="any" min="-180" max="180" placeholder="Ex.: -46.6333" required>
+          <p class="hint">Valor entre -180 e 180.</p>
+        </div>
+
+        <div class="field">
+          <label for="latitude">Latitude <span class="required">*</span></label>
+          <input id="latitude" name="entry.195828261" type="number" step="any" min="-90" max="90" placeholder="Ex.: -23.5505" required>
+          <p class="hint">Valor entre -90 e 90.</p>
+        </div>
+
+        <button class="submit" type="submit" id="submitButton">Enviar registro</button>
+        <div class="status" id="status" role="status" aria-live="polite"></div>
+      </form>
+
+      <iframe name="googleFormTarget" title="Envio do formulário" style="display:none"></iframe>
+      <div class="footer">Os dados serão enviados para o formulário original do Google Forms.</div>
+    </section>
+  </main>
+
+  <script>
+    const form = document.getElementById('weatherForm');
+    const locationButton = document.getElementById('getLocation');
+    const submitButton = document.getElementById('submitButton');
+    const statusBox = document.getElementById('status');
+
+    function showStatus(message, type) {
+      statusBox.textContent = message;
+      statusBox.className = `status show ${type}`;
+    }
+
+    locationButton.addEventListener('click', () => {
+      if (!('geolocation' in navigator)) {
+        showStatus('Seu navegador não oferece suporte à localização. Preencha as coordenadas manualmente.', 'error');
+        return;
+      }
+
+      locationButton.disabled = true;
+      locationButton.textContent = 'Obtendo sua localização...';
+
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          document.getElementById('latitude').value = position.coords.latitude.toFixed(6);
+          document.getElementById('longitude').value = position.coords.longitude.toFixed(6);
+          locationButton.disabled = false;
+          locationButton.textContent = 'Localização preenchida com sucesso';
+          showStatus('Coordenadas preenchidas. Confira o nome do local e envie o registro.', 'success');
+        },
+        (error) => {
+          locationButton.disabled = false;
+          locationButton.textContent = 'Tentar obter minha localização novamente';
+          const messages = {
+            1: 'Permissão de localização negada. Autorize o acesso no navegador ou preencha as coordenadas manualmente.',
+            2: 'Não foi possível determinar sua localização. Tente novamente ou informe as coordenadas manualmente.',
+            3: 'A solicitação de localização demorou demais. Tente novamente.'
+          };
+          showStatus(messages[error.code] || 'Ocorreu um erro ao obter sua localização.', 'error');
+        },
+        { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
+      );
+    });
+
+    form.addEventListener('submit', (event) => {
+      if (!form.reportValidity()) {
+        event.preventDefault();
+        return;
+      }
+
+      const latitude = Number(document.getElementById('latitude').value);
+      const longitude = Number(document.getElementById('longitude').value);
+
+      if (latitude < -90 || latitude > 90 || longitude < -180 || longitude > 180) {
+        event.preventDefault();
+        showStatus('Confira as coordenadas: latitude deve estar entre -90 e 90 e longitude entre -180 e 180.', 'error');
+        return;
+      }
+
+      submitButton.disabled = true;
+      submitButton.textContent = 'Enviando...';
+      showStatus('Registro enviado ao Google Forms. Se necessário, confirme o recebimento na planilha vinculada.', 'success');
+
+      // O Google Forms recebe os campos via POST em um iframe oculto,
+      // mantendo esta página aberta no GitHub Pages.
+      window.setTimeout(() => {
+        submitButton.disabled = false;
+        submitButton.textContent = 'Enviar registro';
+        form.reset();
+        locationButton.disabled = false;
+        locationButton.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 10c0 5-8 12-8 12S4 15 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/></svg> Preencher coordenadas pela minha localização';
+      }, 1800);
+    });
+  </script>
+</body>
+</html>
